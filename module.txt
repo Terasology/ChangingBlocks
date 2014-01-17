@@ -1,0 +1,9 @@
+{
+    "id" : "ChangingBlocks",
+    "version" : "0.1.0",
+    "author" : "",
+    "displayName" : "ChangingBlocks",
+    "description" : "Slow block animation.   Swaps a block with another block over longer periods of time",
+    "dependencies" : [],
+    "isServerSideOnly" : false
+}
