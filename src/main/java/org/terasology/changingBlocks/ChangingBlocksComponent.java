@@ -22,10 +22,10 @@ import org.terasology.entitySystem.Component;
 public final class ChangingBlocksComponent implements Component {
 
     // determines if animation loops back to first block after last block is reached
-    public boolean loops = false;
+    public boolean loops;
 
     // disable animation check.  Automatically set on last animation if not looping
-    public boolean stopped = false;
+    public boolean stopped;
 
     // List of block names to cycle through
     public Map<String, Long> blockFamilyStages;
