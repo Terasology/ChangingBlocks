@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 MovingBlocks
+ * Copyright 2014 MovingBlocks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.terasology.entitySystem.systems.In;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
+import org.terasology.logic.health.HealthComponent;
 import org.terasology.logic.location.LocationComponent;
 import org.terasology.math.Vector3i;
 import org.terasology.world.WorldProvider;
@@ -55,7 +56,8 @@ public class ChangingBlocksSystem implements ComponentSystem, UpdateSubscriberSy
     public void initialise() {
     }
 
-    @ReceiveEvent(components = {ChangingBlocksComponent.class, LocationComponent.class})
+    // HealthComponent catches blocks as opposed to dropped items from a block. Cheap fix but maybe not the right one
+    @ReceiveEvent(components = {ChangingBlocksComponent.class, LocationComponent.class, HealthComponent.class})
     public void onSpawn(OnAddedComponent event, EntityRef entity) {
         long initTime = timer.getGameTimeInMs();
         ChangingBlocksComponent changingBlocks = entity.getComponent(ChangingBlocksComponent.class);
@@ -93,7 +95,7 @@ public class ChangingBlocksSystem implements ComponentSystem, UpdateSubscriberSy
                     Block currentBlock = worldprovider.getBlock(locComponent.getWorldPosition());
                     String currentBlockFamilyStage = currentBlock.getURI().toString();
                     Set<String> keySet = blockAnimation.blockFamilyStages.keySet();
-                    List<String> keyList = new ArrayList<String>(keySet);
+                    List<String> keyList = new ArrayList<>(keySet);
                     int currentstageIndex = keyList.indexOf(currentBlockFamilyStage);
                     int lastStageIndex = blockAnimation.blockFamilyStages.size() - 1;
                     if (lastStageIndex > currentstageIndex) {
