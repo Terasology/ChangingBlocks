@@ -24,11 +24,8 @@ import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.entity.lifecycleEvents.OnAddedComponent;
 import org.terasology.entitySystem.event.ReceiveEvent;
-import org.terasology.entitySystem.systems.ComponentSystem;
+import org.terasology.entitySystem.systems.*;
 import org.terasology.registry.In;
-import org.terasology.entitySystem.systems.RegisterMode;
-import org.terasology.entitySystem.systems.RegisterSystem;
-import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
 import org.terasology.logic.health.HealthComponent;
 import org.terasology.logic.location.LocationComponent;
 import org.terasology.math.Vector3i;
@@ -38,7 +35,7 @@ import org.terasology.world.block.BlockComponent;
 import org.terasology.world.block.BlockManager;
 
 @RegisterSystem(RegisterMode.AUTHORITY)
-public class ChangingBlocksSystem implements ComponentSystem, UpdateSubscriberSystem {
+public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateSubscriberSystem {
     private static final int CHECK_INTERVAL = 1000;
 
     @In
