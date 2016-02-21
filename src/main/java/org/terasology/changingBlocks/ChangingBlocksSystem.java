@@ -15,24 +15,26 @@
  */
 package org.terasology.changingBlocks;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.entity.lifecycleEvents.OnAddedComponent;
 import org.terasology.entitySystem.event.ReceiveEvent;
-import org.terasology.entitySystem.systems.*;
-import org.terasology.registry.In;
-import org.terasology.logic.health.HealthComponent;
+import org.terasology.entitySystem.systems.BaseComponentSystem;
+import org.terasology.entitySystem.systems.RegisterMode;
+import org.terasology.entitySystem.systems.RegisterSystem;
+import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
 import org.terasology.logic.location.LocationComponent;
 import org.terasology.math.geom.Vector3i;
+import org.terasology.registry.In;
 import org.terasology.world.WorldProvider;
 import org.terasology.world.block.Block;
 import org.terasology.world.block.BlockComponent;
 import org.terasology.world.block.BlockManager;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateSubscriberSystem {
@@ -53,8 +55,7 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
     public void initialise() {
     }
 
-    // HealthComponent catches blocks as opposed to dropped items from a block. Cheap fix but maybe not the right one
-    @ReceiveEvent(components = {ChangingBlocksComponent.class, LocationComponent.class, HealthComponent.class})
+    @ReceiveEvent(components = {ChangingBlocksComponent.class, LocationComponent.class, BlockComponent.class})
     public void onSpawn(OnAddedComponent event, EntityRef entity) {
         long initTime = timer.getGameTimeInMs();
         ChangingBlocksComponent changingBlocks = entity.getComponent(ChangingBlocksComponent.class);
