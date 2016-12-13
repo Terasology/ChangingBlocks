@@ -1,7 +1,7 @@
 {
     "id" : "ChangingBlocks",
     "version" : "0.1.1-SNAPSHOT",
-    "author" : "",
+    "author" : "Cervator, mkienenb, Josharias",
     "displayName" : "ChangingBlocks",
     "description" : "Slow block animation.   Swaps a block with another block over longer periods of time",
     "dependencies" : [],
