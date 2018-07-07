@@ -18,7 +18,9 @@ package org.terasology.changingBlocks;
 import java.util.Map;
 
 import org.terasology.entitySystem.Component;
+import org.terasology.world.block.ForceBlockActive;
 
+@ForceBlockActive
 public final class ChangingBlocksComponent implements Component {
 
     // determines if animation loops back to first block after last block is reached
