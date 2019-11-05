@@ -54,6 +54,8 @@ public class BlockCondition {
          * If true, ignore distances and only check if it touches this block.
          */
         public boolean adjacent = false;
+
+        public boolean throughWalls = false;
     }
 
     /**
@@ -76,6 +78,8 @@ public class BlockCondition {
          * The field of view to check. 0 = direct line from faces only; 1 = any block on that side of this block.
          */
         public float fieldOfView = 0;
+
+        public boolean throughWalls = false;
     }
 
     /**
@@ -100,6 +104,8 @@ public class BlockCondition {
          * The maximum distance away the triggering entity must be located. Default 1.5F.
          */
         public float maxDistance = 1.5F;
+
+        public boolean throughWalls = false;
     }
 
     /**
@@ -122,5 +128,7 @@ public class BlockCondition {
          * The field of view to check. 0 = direct line from faces only; 1 = any block on that side of this block.
          */
         public float fieldOfView = 0;
+
+        public boolean throughWalls = false;
     }
 }
