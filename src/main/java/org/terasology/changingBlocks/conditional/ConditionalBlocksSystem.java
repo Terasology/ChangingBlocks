@@ -347,10 +347,12 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
      */
     @ReceiveEvent(components = {ConditionalBlockChangeComponent.class, LocationComponent.class, BlockComponent.class})
     public void onRemoving(BeforeRemoveComponent event, EntityRef entity) {
-        for (List<EntityRef> refs : triggerCollections.values())
-        {
-            refs.remove(entity);
-        }
+        triggerCollections.replaceAll(
+                (trigger, refs) -> {
+                    refs.remove(entity);
+                    return refs;
+                }
+        );
     }
 
     /**
