@@ -91,8 +91,14 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
      */
     public void registerTrigger(String trigger, EntityRef triggerable, Boolean isBlock)
     {
-        List<EntityRef> triggerTaggers = triggerCollections.computeIfAbsent(trigger, k -> new ArrayList<>());
-        triggerTaggers.add(triggerable);
+        triggerCollections.compute(
+                trigger,
+                (k, v) -> {
+                    if (v == null) v = new ArrayList<>();
+                    v.add(triggerable);
+                    return v;
+                }
+        );
     }
 
     /**
