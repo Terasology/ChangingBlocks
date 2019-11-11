@@ -70,27 +70,49 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
     @In
     private Random random;
 
-    private Logger log;
+    private static Logger log = LoggerFactory.getLogger(ConditionalBlocksSystem.class);
 
+    /**
+     * Maps block IDs and entity categories to lists of block entities that have changes triggered by such blocks or entities.
+     */
     private Map<String, List<EntityRef>> triggerCollections = new HashMap<>();
 
     @Override
     public void initialise() {
-        random = new FastRandom();
-        log = LoggerFactory.getLogger(this.getClass());
-        log.info("Logger created");
+        random = new FastRandom(worldprovider.getSeed().hashCode());
     }
 
-    public void checkLocational(EntityRef entity, Vector3f triggerPosition, String triggername, Boolean isBlock)
+    /**
+     * Registers a particular block entity with a particular triggering string.
+     * This method is public so that other modules may register their own custom entity-trigger types.
+     * @param trigger The name of the trigger, such as a block ID or entity category.
+     * @param triggerable The entity that may be changed by the trigger.
+     * @param isBlock Whether this trigger is a block or a free-moving entity like a player or NPC.
+     */
+    public void registerTrigger(String trigger, EntityRef triggerable, Boolean isBlock)
     {
-        for (EntityRef blockChange : triggerCollections.get(triggername)) {
+        List<EntityRef> triggerTaggers = triggerCollections.computeIfAbsent(trigger, k -> new ArrayList<>());
+        triggerTaggers.add(triggerable);
+    }
+
+    /**
+     * Executes any conditional changes that may be started by the given entity (including block entities) at the given position.
+     * This method is public so that other modules may register their own custom event triggers.
+     * @param entity The entity that may cause the trigger.
+     * @param triggerPosition The location at which the entity is found.
+     * @param triggerName The string representing this entity's type.
+     * @param isBlock Whether this entity is a block entity or another type.
+     */
+    public void checkLocational(EntityRef entity, Vector3f triggerPosition, String triggerName, Boolean isBlock)
+    {
+        for (EntityRef blockChange : triggerCollections.get(triggerName)) {
             if (isBlock) {
                 ChangeBlockBlockNearbyComponent bn = blockChange.getComponent(ChangeBlockBlockNearbyComponent.class);
                 if (bn != null) {
                     //check the possible changes for this block
                     for (BlockCondition.BlockNearby change : bn.changes) {
                         //if the trigger matches
-                        if (change.triggerBlock.equals(triggername)) {
+                        if (change.triggerBlock.equals(triggerName)) {
                             LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
                             Vector3f changeSpot = blockLocation.getWorldPosition();
                             float distance = changeSpot.distance(triggerPosition);
@@ -119,7 +141,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                     //check the possible changes for this block
                     for (BlockCondition.BlockDirected change : bd.changes) {
                         //if the trigger matches
-                        if (change.triggerBlock.equals(triggername)) {
+                        if (change.triggerBlock.equals(triggerName)) {
                             LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
                             Vector3f changeSpot = blockLocation.getWorldPosition();
                             float distance = changeSpot.distance(triggerPosition);
@@ -150,7 +172,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                     //check the possible changes for this block
                     for (BlockCondition.EntityNearby change : en.changes) {
                         //if the trigger matches
-                        if (change.triggerEntity.equals(triggername)) {
+                        if (change.triggerEntity.equals(triggerName)) {
                             LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
                             Vector3f changeSpot = blockLocation.getWorldPosition();
                             float distance = changeSpot.distance(triggerPosition);
@@ -174,7 +196,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                     //check the possible changes for this block
                     for (BlockCondition.EntityDirected change : ed.changes) {
                         //if the trigger matches
-                        if (change.triggerEntity.equals(triggername)) {
+                        if (change.triggerEntity.equals(triggerName)) {
                             LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
                             Vector3f changeSpot = blockLocation.getWorldPosition();
                             float distance = changeSpot.distance(triggerPosition);
@@ -203,6 +225,11 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         }
     }
 
+    /**
+     * Triggers any conditional changes that should be caused by a dropped Item.
+     * @param event The event triggered by the location or item change.
+     * @param entity The item.
+     */
     @ReceiveEvent(components = {LocationComponent.class, ItemComponent.class})
     public void onItemUpdate(OnChangedComponent event, EntityRef entity)
     {
@@ -213,6 +240,11 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         }
     }
 
+    /**
+     * Triggers any conditional changes that should be caused by a non-player character.
+     * @param event The event triggered by the location or character change.
+     * @param entity The NPC.
+     */
     @ReceiveEvent(components = {LocationComponent.class, CharacterComponent.class})
     public void onCharacterUpdate(OnChangedComponent event, EntityRef entity)
     {
@@ -223,6 +255,11 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         }
     }
 
+    /**
+     * Triggers any conditional changes that should be caused by a player.
+     * @param event The event triggered by the location or player change.
+     * @param entity The player.
+     */
     @ReceiveEvent(components = {LocationComponent.class, PlayerCharacterComponent.class})
     public void onPlayerUpdate(OnChangedComponent event, EntityRef entity)
     {
@@ -234,6 +271,11 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         }
     }
 
+    /**
+     * Triggers any conditional changes that should be caused by a block being added or removed.
+     * @param event The information about the block change.
+     * @param entity The new block entity.
+     */
     @ReceiveEvent(components = {BlockComponent.class, LocationComponent.class})
     public void onUpdate(OnChangedBlock event, EntityRef entity) {
         String trigger = event.getNewType().getURI().toString();
@@ -242,12 +284,11 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         }
     }
 
-    public void registerTrigger(String trigger, EntityRef triggerable, Boolean isBlock)
-    {
-        List<EntityRef> triggerTaggers = triggerCollections.computeIfAbsent(trigger, k -> new ArrayList<>());
-        triggerTaggers.add(triggerable);
-    }
-
+    /**
+     * Registers every block that may be triggered by a directed change.
+     * @param event The event caused by the block's creation.
+     * @param entity The block entity to register.
+     */
     @ReceiveEvent(components = {ChangeBlockBlockDirectedComponent.class, LocationComponent.class, BlockComponent.class})
     public void onSpawnBlockDirected(OnAddedComponent event, EntityRef entity) {
         ChangeBlockBlockDirectedComponent changingBlocks = entity.getComponent(ChangeBlockBlockDirectedComponent.class);
@@ -257,6 +298,11 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         }
     }
 
+    /**
+     * Registers every block that may be triggered by a non-directional change.
+     * @param event The event caused by the block's creation.
+     * @param entity The block entity to register.
+     */
     @ReceiveEvent(components = {ChangeBlockBlockNearbyComponent.class, LocationComponent.class, BlockComponent.class})
     public void onSpawnBlockNearby(OnAddedComponent event, EntityRef entity) {
         ChangeBlockBlockNearbyComponent changingBlocks = entity.getComponent(ChangeBlockBlockNearbyComponent.class);
@@ -266,6 +312,11 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         }
     }
 
+    /**
+     * Registers every block that may be triggered by an entity in a certain direction.
+     * @param event The event caused by the block's creation.
+     * @param entity The block entity to register.
+     */
     @ReceiveEvent(components = {ChangeBlockEntityDirectedComponent.class, LocationComponent.class, BlockComponent.class})
     public void onSpawnEntityDirected(OnAddedComponent event, EntityRef entity) {
         ChangeBlockEntityDirectedComponent changingBlocks = entity.getComponent(ChangeBlockEntityDirectedComponent.class);
@@ -275,6 +326,11 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         }
     }
 
+    /**
+     * Registers every block that may be triggered by a nearby entity regardless of direction.
+     * @param event The event caused by the block's creation.
+     * @param entity The block entity to register.
+     */
     @ReceiveEvent(components = {ChangeBlockEntityNearbyComponent.class, LocationComponent.class, BlockComponent.class})
     public void onSpawnEntityNearby(OnAddedComponent event, EntityRef entity) {
         ChangeBlockEntityNearbyComponent changingBlocks = entity.getComponent(ChangeBlockEntityNearbyComponent.class);
@@ -284,6 +340,11 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         }
     }
 
+    /**
+     * Removes a block entity from the list of triggerable blocks whenever the block is removed.
+     * @param event The event caused by the block's removal.
+     * @param entity The block entity to deregister.
+     */
     @ReceiveEvent(components = {ConditionalBlockChangeComponent.class, LocationComponent.class, BlockComponent.class})
     public void onRemoving(BeforeRemoveComponent event, EntityRef entity) {
         for (List<EntityRef> refs : triggerCollections.values())
@@ -292,6 +353,9 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         }
     }
 
+    /**
+     * Just to be safe, manually clears the list of triggerable blocks when the world ends.
+     */
     @Override
     public void shutdown() {
         for (String trigger : triggerCollections.keySet())
