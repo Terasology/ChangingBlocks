@@ -19,14 +19,14 @@ import org.terasology.math.Side;
 
 public class BlockCondition {
     /**
-     * The chance that this condition will be executed if it is reached, where 0.0 = 0% and 1.0 = 100%
+     * The chance that the change will be executed if this condition is reached, where 0.0 = 0% and 1.0 = 100%
      */
     public float chance = 1.0F;
 
     /**
      * The block ID of the block which will replace this block.
      */
-    public String blockToBecome;
+    public String targetBlockID;
 
     /**
      * This base condition should be used if another block is part of the condition.
@@ -35,7 +35,7 @@ public class BlockCondition {
         /**
          * The block ID of the block which will trigger this action
          */
-        public String triggerBlock;
+        public String triggerBlockID;
     }
 
     /**

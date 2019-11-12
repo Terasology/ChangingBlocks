@@ -26,15 +26,13 @@ import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.entity.lifecycleEvents.BeforeRemoveComponent;
 import org.terasology.entitySystem.entity.lifecycleEvents.OnAddedComponent;
-import org.terasology.entitySystem.entity.lifecycleEvents.OnChangedComponent;
 import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
-import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
 import org.terasology.logic.characters.CharacterComponent;
-import org.terasology.logic.characters.CharacterMovementComponent;
 import org.terasology.logic.inventory.ItemComponent;
+import org.terasology.logic.location.LocationChangedEvent;
 import org.terasology.logic.location.LocationComponent;
 import org.terasology.logic.players.PlayerCharacterComponent;
 import org.terasology.math.Direction;
@@ -118,13 +116,13 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                     //check the possible changes for this block
                     for (BlockCondition.BlockNearby change : bn.changes) {
                         //if the trigger matches
-                        if (change.triggerBlock.equals(triggerName)) {
+                        if (change.triggerBlockID.equals(triggerName)) {
                             LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
                             Vector3f changeSpot = blockLocation.getWorldPosition();
                             float distance = changeSpot.distance(triggerPosition);
                             //if it is adjacent
                             if (change.adjacent && distance < 2 && change.chance >= random.nextFloat()) {
-                                worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.blockToBecome));
+                                worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
                             } else {
                                 //if it is within range
                                 if (distance >= change.minDistance && distance <= change.maxDistance) {
@@ -133,7 +131,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                                     if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
                                         //if the random odds are in our favor
                                         if (change.chance >= random.nextFloat()) {
-                                            worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.blockToBecome));
+                                            worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
                                         }
                                     }
                                 }
@@ -147,7 +145,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                     //check the possible changes for this block
                     for (BlockCondition.BlockDirected change : bd.changes) {
                         //if the trigger matches
-                        if (change.triggerBlock.equals(triggerName)) {
+                        if (change.triggerBlockID.equals(triggerName)) {
                             LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
                             Vector3f changeSpot = blockLocation.getWorldPosition();
                             float distance = changeSpot.distance(triggerPosition);
@@ -163,7 +161,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                                         if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
                                             //if the random odds are in our favor
                                             if (change.chance >= random.nextFloat()) {
-                                                worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.blockToBecome));
+                                                worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
                                             }
                                         }
                                     }
@@ -189,7 +187,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                                 if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
                                     //if the random odds are in our favor
                                     if (change.chance >= random.nextFloat()) {
-                                        worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.blockToBecome));
+                                        worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
                                     }
                                 }
                             }
@@ -218,7 +216,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                                         if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
                                             //if the random odds are in our favor
                                             if (change.chance >= random.nextFloat()) {
-                                                worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.blockToBecome));
+                                                worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
                                             }
                                         }
                                     }
@@ -236,8 +234,8 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
      * @param event The event triggered by the location or item change.
      * @param entity The item.
      */
-    @ReceiveEvent(components = {LocationComponent.class, ItemComponent.class})
-    public void onItemUpdate(OnChangedComponent event, EntityRef entity)
+    @ReceiveEvent(components =  {LocationComponent.class, ItemComponent.class})
+    public void onItemUpdate(LocationChangedEvent event, EntityRef entity)
     {
         String trigger = "item";
         if (triggerCollections.containsKey(trigger)) {
@@ -252,7 +250,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
      * @param entity The NPC.
      */
     @ReceiveEvent(components = {LocationComponent.class, CharacterComponent.class})
-    public void onCharacterUpdate(OnChangedComponent event, EntityRef entity)
+    public void onCharacterUpdate(LocationChangedEvent event, EntityRef entity)
     {
         String trigger = "npc";
         if (triggerCollections.containsKey(trigger)) {
@@ -267,10 +265,9 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
      * @param entity The player.
      */
     @ReceiveEvent(components = {LocationComponent.class, PlayerCharacterComponent.class})
-    public void onPlayerUpdate(OnChangedComponent event, EntityRef entity)
+    public void onPlayerUpdate(LocationChangedEvent event, EntityRef entity)
     {
         String trigger = "player";
-        log.info("Recieved movement for " + entity.toString());
         if (triggerCollections.containsKey(trigger)) {
             LocationComponent lc = entity.getComponent(LocationComponent.class);
             checkLocational(entity, lc.getWorldPosition(), trigger, false);
@@ -300,7 +297,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         ChangeBlockBlockDirectedComponent changingBlocks = entity.getComponent(ChangeBlockBlockDirectedComponent.class);
         List<BlockCondition.BlockDirected> listOfChanges = changingBlocks.changes;
         for (BlockCondition.BlockDirected bc : listOfChanges) {
-            registerTrigger(bc.triggerBlock, entity, true);
+            registerTrigger(bc.triggerBlockID, entity, true);
         }
     }
 
@@ -314,7 +311,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         ChangeBlockBlockNearbyComponent changingBlocks = entity.getComponent(ChangeBlockBlockNearbyComponent.class);
         List<BlockCondition.BlockNearby> listOfChanges = changingBlocks.changes;
         for (BlockCondition.BlockNearby bc : listOfChanges) {
-            registerTrigger(bc.triggerBlock, entity, true);
+            registerTrigger(bc.triggerBlockID, entity, true);
         }
     }
 
