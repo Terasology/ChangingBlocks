@@ -87,12 +87,13 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
      * @param triggerable The entity that may be changed by the trigger.
      * @param isBlock Whether this trigger is a block or a free-moving entity like a player or NPC.
      */
-    public void registerTrigger(String trigger, EntityRef triggerable, Boolean isBlock)
-    {
+    public void registerTrigger(String trigger, EntityRef triggerable, Boolean isBlock) {
         triggerCollections.compute(
                 trigger,
                 (k, v) -> {
-                    if (v == null) v = new ArrayList<>();
+                    if (v == null) {
+                        v = new ArrayList<>();
+                    }
                     v.add(triggerable);
                     return v;
                 }
@@ -107,8 +108,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
      * @param triggerName The string representing this entity's type.
      * @param isBlock Whether this entity is a block entity or another type.
      */
-    public void checkLocational(EntityRef entity, Vector3f triggerPosition, String triggerName, Boolean isBlock)
-    {
+    public void checkLocational(EntityRef entity, Vector3f triggerPosition, String triggerName, Boolean isBlock) {
         for (EntityRef blockChange : triggerCollections.get(triggerName)) {
             if (isBlock) {
                 ChangeBlockBlockNearbyComponent bn = blockChange.getComponent(ChangeBlockBlockNearbyComponent.class);
@@ -235,8 +235,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
      * @param entity The item.
      */
     @ReceiveEvent(components =  {LocationComponent.class, ItemComponent.class})
-    public void onItemUpdate(LocationChangedEvent event, EntityRef entity)
-    {
+    public void onItemUpdate(LocationChangedEvent event, EntityRef entity) {
         String trigger = "item";
         if (triggerCollections.containsKey(trigger)) {
             LocationComponent lc = entity.getComponent(LocationComponent.class);
@@ -250,8 +249,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
      * @param entity The NPC.
      */
     @ReceiveEvent(components = {LocationComponent.class, CharacterComponent.class})
-    public void onCharacterUpdate(LocationChangedEvent event, EntityRef entity)
-    {
+    public void onCharacterUpdate(LocationChangedEvent event, EntityRef entity) {
         String trigger = "npc";
         if (triggerCollections.containsKey(trigger)) {
             LocationComponent lc = entity.getComponent(LocationComponent.class);
@@ -265,8 +263,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
      * @param entity The player.
      */
     @ReceiveEvent(components = {LocationComponent.class, PlayerCharacterComponent.class})
-    public void onPlayerUpdate(LocationChangedEvent event, EntityRef entity)
-    {
+    public void onPlayerUpdate(LocationChangedEvent event, EntityRef entity) {
         String trigger = "player";
         if (triggerCollections.containsKey(trigger)) {
             LocationComponent lc = entity.getComponent(LocationComponent.class);
@@ -363,8 +360,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
      */
     @Override
     public void shutdown() {
-        for (String trigger : triggerCollections.keySet())
-        {
+        for (String trigger : triggerCollections.keySet()) {
             log.info("Clearing list of " + triggerCollections.get(trigger).size() + " entities triggered by " + trigger);
         }
         triggerCollections.clear();
