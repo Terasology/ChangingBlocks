@@ -100,89 +100,55 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         );
     }
 
-    /**
-     * Executes any conditional changes that may be started by the given entity (including block entities) at the given position.
-     * This method is public so that other modules may register their own custom event triggers.
-     * @param entity The entity that may cause the trigger.
-     * @param triggerPosition The location at which the entity is found.
-     * @param triggerName The string representing this entity's type.
-     * @param isBlock Whether this entity is a block entity or another type.
-     */
-    public void checkLocational(EntityRef entity, Vector3f triggerPosition, String triggerName, Boolean isBlock) {
-        for (EntityRef blockChange : triggerCollections.get(triggerName)) {
-            if (isBlock) {
-                ChangeBlockBlockNearbyComponent bn = blockChange.getComponent(ChangeBlockBlockNearbyComponent.class);
-                if (bn != null) {
-                    //check the possible changes for this block
-                    for (BlockCondition.BlockNearby change : bn.changes) {
-                        //if the trigger matches
-                        if (change.triggerBlockID.equals(triggerName)) {
-                            LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
-                            Vector3f changeSpot = blockLocation.getWorldPosition();
-                            float distance = changeSpot.distance(triggerPosition);
-                            //if it is adjacent
-                            if (change.adjacent && distance < 2 && change.chance >= random.nextFloat()) {
-                                worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
-                            } else {
-                                //if it is within range
-                                if (distance >= change.minDistance && distance <= change.maxDistance) {
-                                    Vector3f direction = triggerPosition.sub(changeSpot);
-                                    //if the change can occur when obstructed, or otherwise if there is no obstruction
-                                    if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
-                                        //if the random odds are in our favor
-                                        if (change.chance >= random.nextFloat()) {
-                                            worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
-                                        }
-                                    }
+    private void checkBlockNearby(EntityRef entity, Vector3f triggerPosition, String triggerName, EntityRef blockChange) {
+        ChangeBlockBlockNearbyComponent bn = blockChange.getComponent(ChangeBlockBlockNearbyComponent.class);
+        if (bn != null) {
+            //check the possible changes for this block
+            for (BlockCondition.BlockNearby change : bn.changes) {
+                //if the trigger matches
+                if (change.triggerBlockID.equals(triggerName)) {
+                    LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
+                    Vector3f changeSpot = blockLocation.getWorldPosition();
+                    float distance = changeSpot.distance(triggerPosition);
+                    //if it is adjacent
+                    if (change.adjacent && distance < 2 && change.chance >= random.nextFloat()) {
+                        worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
+                    } else {
+                        //if it is within range
+                        if (distance >= change.minDistance && distance <= change.maxDistance) {
+                            Vector3f direction = triggerPosition.sub(changeSpot);
+                            //if the change can occur when obstructed, or otherwise if there is no obstruction
+                            if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
+                                //if the random odds are in our favor
+                                if (change.chance >= random.nextFloat()) {
+                                    worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
                                 }
                             }
                         }
                     }
                 }
+            }
+        }
+    }
 
-                ChangeBlockBlockDirectedComponent bd = blockChange.getComponent(ChangeBlockBlockDirectedComponent.class);
-                if (bd != null) {
-                    //check the possible changes for this block
-                    for (BlockCondition.BlockDirected change : bd.changes) {
-                        //if the trigger matches
-                        if (change.triggerBlockID.equals(triggerName)) {
-                            LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
-                            Vector3f changeSpot = blockLocation.getWorldPosition();
-                            float distance = changeSpot.distance(triggerPosition);
-                            //if it is within range
-                            if (distance >= change.minDistance && distance <= change.maxDistance) {
-                                Side global = change.blockSide.getRelativeSide(Direction.inDirection(blockLocation.getLocalDirection()));
-                                Vector3f direction = triggerPosition.sub(changeSpot);
-                                //if it's on the correct side of the block
-                                if (Side.inDirection(direction) == global) {
-                                    //if the angle is within the change's field of view limit
-                                    if (direction.angle(global.getVector3i().toVector3f()) <= change.fieldOfView) {
-                                        //if the change can occur when obstructed, or otherwise if there is no obstruction
-                                        if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
-                                            //if the random odds are in our favor
-                                            if (change.chance >= random.nextFloat()) {
-                                                worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                ChangeBlockEntityNearbyComponent en = blockChange.getComponent(ChangeBlockEntityNearbyComponent.class);
-                if (en != null) {
-                    //check the possible changes for this block
-                    for (BlockCondition.EntityNearby change : en.changes) {
-                        //if the trigger matches
-                        if (change.triggerEntity.equals(triggerName)) {
-                            LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
-                            Vector3f changeSpot = blockLocation.getWorldPosition();
-                            float distance = changeSpot.distance(triggerPosition);
-                            //if it is within range
-                            if (distance >= change.minDistance && distance <= change.maxDistance) {
-                                Vector3f direction = triggerPosition.sub(changeSpot);
+    private void checkBlockDirected(EntityRef entity, Vector3f triggerPosition, String triggerName, EntityRef blockChange) {
+        ChangeBlockBlockDirectedComponent bd = blockChange.getComponent(ChangeBlockBlockDirectedComponent.class);
+        if (bd != null) {
+            //check the possible changes for this block
+            for (BlockCondition.BlockDirected change : bd.changes) {
+                //if the trigger matches
+                if (change.triggerBlockID.equals(triggerName)) {
+                    LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
+                    Vector3f changeSpot = blockLocation.getWorldPosition();
+                    float distance = changeSpot.distance(triggerPosition);
+                    //if it is within range
+                    if (distance >= change.minDistance && distance <= change.maxDistance) {
+                        Side global = change.blockSide.getRelativeSide(Direction.inDirection(blockLocation.getLocalDirection()));
+                        Vector3f direction = triggerPosition.sub(changeSpot);
+                        //if it's on the correct side of the block
+                        if (Side.inDirection(direction) == global) {
+                            //if the angle is within the change's field of view limit
+                            if (direction.angle(global.getVector3i().toVector3f()) <= change.fieldOfView) {
                                 //if the change can occur when obstructed, or otherwise if there is no obstruction
                                 if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
                                     //if the random odds are in our favor
@@ -194,37 +160,85 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                         }
                     }
                 }
+            }
+        }
+    }
 
-                ChangeBlockEntityDirectedComponent ed = blockChange.getComponent(ChangeBlockEntityDirectedComponent.class);
-                if (ed != null) {
-                    //check the possible changes for this block
-                    for (BlockCondition.EntityDirected change : ed.changes) {
-                        //if the trigger matches
-                        if (change.triggerEntity.equals(triggerName)) {
-                            LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
-                            Vector3f changeSpot = blockLocation.getWorldPosition();
-                            float distance = changeSpot.distance(triggerPosition);
-                            //if it is within range
-                            if (distance >= change.minDistance && distance <= change.maxDistance) {
-                                Side global = change.blockSide.getRelativeSide(Direction.inDirection(blockLocation.getLocalDirection()));
-                                Vector3f direction = triggerPosition.sub(changeSpot);
-                                //if it's on the correct side of the block
-                                if (Side.inDirection(direction) == global) {
-                                    //if the angle is within the change's field of view limit
-                                    if (direction.angle(global.getVector3i().toVector3f()) <= change.fieldOfView) {
-                                        //if the change can occur when obstructed, or otherwise if there is no obstruction
-                                        if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
-                                            //if the random odds are in our favor
-                                            if (change.chance >= random.nextFloat()) {
-                                                worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
-                                            }
-                                        }
+    private void checkEntityNearby(EntityRef entity, Vector3f triggerPosition, String triggerName, EntityRef blockChange) {
+        ChangeBlockEntityNearbyComponent en = blockChange.getComponent(ChangeBlockEntityNearbyComponent.class);
+        if (en != null) {
+            //check the possible changes for this block
+            for (BlockCondition.EntityNearby change : en.changes) {
+                //if the trigger matches
+                if (change.triggerEntity.equals(triggerName)) {
+                    LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
+                    Vector3f changeSpot = blockLocation.getWorldPosition();
+                    float distance = changeSpot.distance(triggerPosition);
+                    //if it is within range
+                    if (distance >= change.minDistance && distance <= change.maxDistance) {
+                        Vector3f direction = triggerPosition.sub(changeSpot);
+                        //if the change can occur when obstructed, or otherwise if there is no obstruction
+                        if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
+                            //if the random odds are in our favor
+                            if (change.chance >= random.nextFloat()) {
+                                worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void checkEntityDirected(EntityRef entity, Vector3f triggerPosition, String triggerName, EntityRef blockChange) {
+        ChangeBlockEntityDirectedComponent ed = blockChange.getComponent(ChangeBlockEntityDirectedComponent.class);
+        if (ed != null) {
+            //check the possible changes for this block
+            for (BlockCondition.EntityDirected change : ed.changes) {
+                //if the trigger matches
+                if (change.triggerEntity.equals(triggerName)) {
+                    LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
+                    Vector3f changeSpot = blockLocation.getWorldPosition();
+                    float distance = changeSpot.distance(triggerPosition);
+                    //if it is within range
+                    if (distance >= change.minDistance && distance <= change.maxDistance) {
+                        Side global = change.blockSide.getRelativeSide(Direction.inDirection(blockLocation.getLocalDirection()));
+                        Vector3f direction = triggerPosition.sub(changeSpot);
+                        //if it's on the correct side of the block
+                        if (Side.inDirection(direction) == global) {
+                            //if the angle is within the change's field of view limit
+                            if (direction.angle(global.getVector3i().toVector3f()) <= change.fieldOfView) {
+                                //if the change can occur when obstructed, or otherwise if there is no obstruction
+                                if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
+                                    //if the random odds are in our favor
+                                    if (change.chance >= random.nextFloat()) {
+                                        worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
                                     }
                                 }
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+
+        /**
+         * Executes any conditional changes that may be started by the given entity (including block entities) at the given position.
+         * This method is public so that other modules may register their own custom event triggers.
+         * @param entity The entity that may cause the trigger.
+         * @param triggerPosition The location at which the entity is found.
+         * @param triggerName The string representing this entity's type.
+         * @param isBlock Whether this entity is a block entity or another type.
+         */
+    public void checkLocational(EntityRef entity, Vector3f triggerPosition, String triggerName, Boolean isBlock) {
+        for (EntityRef blockChange : triggerCollections.get(triggerName)) {
+            if (isBlock) {
+                checkBlockNearby(entity, triggerPosition, triggerName, blockChange);
+                checkBlockDirected(entity, triggerPosition, triggerName, blockChange);
+            } else {
+                checkEntityNearby(entity, triggerPosition, triggerName, blockChange);
+                checkEntityDirected(entity, triggerPosition, triggerName, blockChange);
             }
         }
     }
