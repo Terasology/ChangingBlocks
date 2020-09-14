@@ -1,10 +1,10 @@
 {
-    "id": "ChangingBlocks",
-    "version": "1.0.0",
-    "author": "Cervator, mkienenb, Josharias",
-    "displayName": "ChangingBlocks",
-    "description": "Slow block animation. Swaps a block with another block over longer periods of time",
-    "dependencies": [],
-    "isServerSideOnly": false,
+    "id" : "ChangingBlocks",
+    "version" : "0.1.2-SNAPSHOT",
+    "author" : "The Terasology Foundation",
+    "displayName" : "ChangingBlocks",
+    "description" : "Allows blocks to become other blocks over time, or when their environment changes",
+    "dependencies" : [],
+    "isServerSideOnly" : false,
     "isLibrary": true
 }
