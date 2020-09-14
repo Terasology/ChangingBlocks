@@ -89,7 +89,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
      */
     public void registerTrigger(String trigger, EntityRef triggerable, Boolean isBlock) {
         triggerCollections.compute(
-                trigger,
+                trigger.toLowerCase(),
                 (k, v) -> {
                     if (v == null) {
                         v = new ArrayList<>();
@@ -292,7 +292,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
      */
     @ReceiveEvent(components = {BlockComponent.class, LocationComponent.class})
     public void onUpdate(OnChangedBlock event, EntityRef entity) {
-        String trigger = event.getNewType().getURI().toString();
+        String trigger = event.getNewType().getURI().toString().toLowerCase();
         if (triggerCollections.containsKey(trigger)) {
             checkLocational(entity, event.getBlockPosition().toVector3f(), trigger, true);
         }
