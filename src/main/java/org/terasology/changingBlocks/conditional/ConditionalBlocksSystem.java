@@ -36,6 +36,7 @@ import org.terasology.logic.location.LocationChangedEvent;
 import org.terasology.logic.location.LocationComponent;
 import org.terasology.logic.players.PlayerCharacterComponent;
 import org.terasology.math.Direction;
+import org.terasology.math.JomlUtil;
 import org.terasology.math.Side;
 import org.terasology.math.geom.Vector3f;
 import org.terasology.math.geom.Vector3i;
@@ -118,7 +119,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                         if (distance >= change.minDistance && distance <= change.maxDistance) {
                             Vector3f direction = triggerPosition.sub(changeSpot);
                             //if the change can occur when obstructed, or otherwise if there is no obstruction
-                            if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
+                            if (change.throughWalls || physics.rayTrace(JomlUtil.from(changeSpot), JomlUtil.from(direction), change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
                                 //if the random odds are in our favor
                                 if (change.chance >= random.nextFloat()) {
                                     worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
@@ -150,7 +151,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                             //if the angle is within the change's field of view limit
                             if (direction.angle(global.getVector3i().toVector3f()) <= change.fieldOfView) {
                                 //if the change can occur when obstructed, or otherwise if there is no obstruction
-                                if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
+                                if (change.throughWalls || physics.rayTrace(JomlUtil.from(changeSpot), JomlUtil.from(direction), change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
                                     //if the random odds are in our favor
                                     if (change.chance >= random.nextFloat()) {
                                         worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
@@ -178,7 +179,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                     if (distance >= change.minDistance && distance <= change.maxDistance) {
                         Vector3f direction = triggerPosition.sub(changeSpot);
                         //if the change can occur when obstructed, or otherwise if there is no obstruction
-                        if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
+                        if (change.throughWalls || physics.rayTrace(JomlUtil.from(changeSpot), JomlUtil.from(direction), change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
                             //if the random odds are in our favor
                             if (change.chance >= random.nextFloat()) {
                                 worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
@@ -209,7 +210,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                             //if the angle is within the change's field of view limit
                             if (direction.angle(global.getVector3i().toVector3f()) <= change.fieldOfView) {
                                 //if the change can occur when obstructed, or otherwise if there is no obstruction
-                                if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
+                                if (change.throughWalls || physics.rayTrace(JomlUtil.from(changeSpot), JomlUtil.from(direction), change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
                                     //if the random odds are in our favor
                                     if (change.chance >= random.nextFloat()) {
                                         worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
