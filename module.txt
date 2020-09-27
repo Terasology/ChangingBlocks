@@ -1,6 +1,6 @@
 {
     "id" : "ChangingBlocks",
-    "version" : "0.1.2-SNAPSHOT",
+    "version" : "1.0.1",
     "author" : "The Terasology Foundation",
     "displayName" : "ChangingBlocks",
     "description" : "Allows blocks to become other blocks over time, or when their environment changes",
