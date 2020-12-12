@@ -15,6 +15,7 @@
  */
 package org.terasology.changingBlocks.conditional;
 
+import org.joml.RoundingMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.changingBlocks.conditional.components.ChangeBlockBlockDirectedComponent;
@@ -295,7 +296,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
     public void onUpdate(OnChangedBlock event, EntityRef entity) {
         String trigger = event.getNewType().getURI().toString().toLowerCase();
         if (triggerCollections.containsKey(trigger)) {
-            checkLocational(entity, event.getBlockPosition().toVector3f(), trigger, true);
+            checkLocational(entity, JomlUtil.from(new org.joml.Vector3f(event.getBlockPosition())), trigger, true);
         }
     }
 
