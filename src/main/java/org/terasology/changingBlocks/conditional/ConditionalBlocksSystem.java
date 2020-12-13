@@ -295,7 +295,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
     public void onUpdate(OnChangedBlock event, EntityRef entity) {
         String trigger = event.getNewType().getURI().toString().toLowerCase();
         if (triggerCollections.containsKey(trigger)) {
-            checkLocational(entity, event.getBlockPosition().toVector3f(), trigger, true);
+            checkLocational(entity, JomlUtil.from(new org.joml.Vector3f(event.getBlockPosition())), trigger, true);
         }
     }
 
