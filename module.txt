@@ -1,10 +1,10 @@
 {
-    "id" : "ChangingBlocks",
-    "version" : "1.0.1",
-    "author" : "The Terasology Foundation",
-    "displayName" : "ChangingBlocks",
-    "description" : "Allows blocks to become other blocks over time, or when their environment changes",
-    "dependencies" : [],
-    "isServerSideOnly" : false,
-    "isLibrary": true
+  "id": "ChangingBlocks",
+  "version": "1.1.1-SNAPSHOT",
+  "author": "The Terasology Foundation",
+  "displayName": "ChangingBlocks",
+  "description": "Allows blocks to become other blocks over time, or when their environment changes",
+  "dependencies": [],
+  "isServerSideOnly": false,
+  "isLibrary": true
 }
