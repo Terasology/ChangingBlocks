@@ -133,7 +133,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                     float distance = changeSpot.distance(triggerPosition);
                     //if it is within range
                     if (distance >= change.minDistance && distance <= change.maxDistance) {
-                        Side global = change.blockSide.getRelativeSide(Direction.inDirection(blockLocation.getLocalDirection()));
+                        Side global = change.blockSide.getRelativeSide(Direction.inDirection(blockLocation.getLocalDirection(new Vector3f())));
                         Vector3f direction = triggerPosition.sub(changeSpot, new Vector3f());
                         //if it's on the correct side of the block
                         if (Side.inDirection(direction) == global) {
@@ -192,7 +192,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                     float distance = changeSpot.distance(triggerPosition);
                     //if it is within range
                     if (distance >= change.minDistance && distance <= change.maxDistance) {
-                        Side global = change.blockSide.getRelativeSide(Direction.inDirection(blockLocation.getLocalDirection()));
+                        Side global = change.blockSide.getRelativeSide(Direction.inDirection(blockLocation.getLocalDirection(new Vector3f())));
                         Vector3f direction = triggerPosition.sub(changeSpot, new Vector3f());
                         //if it's on the correct side of the block
                         if (Side.inDirection(direction) == global) {
