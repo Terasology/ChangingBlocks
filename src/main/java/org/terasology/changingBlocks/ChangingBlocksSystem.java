@@ -15,6 +15,9 @@
  */
 package org.terasology.changingBlocks;
 
+import org.joml.RoundingMode;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
@@ -25,7 +28,6 @@ import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
 import org.terasology.logic.location.LocationComponent;
-import org.terasology.math.geom.Vector3i;
 import org.terasology.registry.In;
 import org.terasology.world.WorldProvider;
 import org.terasology.world.block.Block;
@@ -60,7 +62,7 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
         long initTime = timer.getGameTimeInMs();
         ChangingBlocksComponent changingBlocks = entity.getComponent(ChangingBlocksComponent.class);
         LocationComponent locComponent = entity.getComponent(LocationComponent.class);
-        Block currentBlock = worldprovider.getBlock(locComponent.getWorldPosition());
+        Block currentBlock = worldprovider.getBlock(locComponent.getWorldPosition(new Vector3f()));
         String currentBlockFamilyStage = currentBlock.getURI().toString();
         changingBlocks.timeInGameMsToNextStage = changingBlocks.blockFamilyStages.get(currentBlockFamilyStage);
         changingBlocks.lastGameTimeCheck = initTime;
@@ -109,7 +111,7 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
                         String newBlockUri = keyList.get(currentstageIndex);
                         Block newBlock = blockManager.getBlock(newBlockUri);
                         if (newBlockUri.equals(newBlock.getURI().toString())) {
-                            worldprovider.setBlock(new Vector3i(locComponent.getWorldPosition()), newBlock);
+                            worldprovider.setBlock(new Vector3i(locComponent.getWorldPosition(new Vector3f()), RoundingMode.FLOOR), newBlock);
                             blockAnimation.timeInGameMsToNextStage = blockAnimation.blockFamilyStages.get(currentBlockFamilyStage);
                         }
                     }

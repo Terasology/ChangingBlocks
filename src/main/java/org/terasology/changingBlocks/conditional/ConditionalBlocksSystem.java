@@ -1,20 +1,11 @@
-/*
- * Copyright 2019 MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 package org.terasology.changingBlocks.conditional;
 
+import org.joml.RoundingMode;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
+import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.changingBlocks.conditional.components.ChangeBlockBlockDirectedComponent;
@@ -36,10 +27,7 @@ import org.terasology.logic.location.LocationChangedEvent;
 import org.terasology.logic.location.LocationComponent;
 import org.terasology.logic.players.PlayerCharacterComponent;
 import org.terasology.math.Direction;
-import org.terasology.math.JomlUtil;
 import org.terasology.math.Side;
-import org.terasology.math.geom.Vector3f;
-import org.terasology.math.geom.Vector3i;
 import org.terasology.physics.Physics;
 import org.terasology.physics.StandardCollisionGroup;
 import org.terasology.registry.In;
@@ -57,6 +45,7 @@ import java.util.Map;
 
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class ConditionalBlocksSystem extends BaseComponentSystem {
+    private static Logger log = LoggerFactory.getLogger(ConditionalBlocksSystem.class);
 
     @In
     private BlockManager blockManager;
@@ -69,10 +58,9 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
     @In
     private Random random;
 
-    private static Logger log = LoggerFactory.getLogger(ConditionalBlocksSystem.class);
-
     /**
-     * Maps block IDs and entity categories to lists of block entities that have changes triggered by such blocks or entities.
+     * Maps block IDs and entity categories to lists of block entities that have changes triggered by such blocks or
+     * entities.
      */
     private Map<String, List<EntityRef>> triggerCollections = new HashMap<>();
 
@@ -82,26 +70,27 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
     }
 
     /**
-     * Registers a particular block entity with a particular triggering string.
-     * This method is public so that other modules may register their own custom entity-trigger types.
+     * Registers a particular block entity with a particular triggering string. This method is public so that other
+     * modules may register their own custom entity-trigger types.
+     *
      * @param trigger The name of the trigger, such as a block ID or entity category.
      * @param triggerable The entity that may be changed by the trigger.
      * @param isBlock Whether this trigger is a block or a free-moving entity like a player or NPC.
      */
     public void registerTrigger(String trigger, EntityRef triggerable, Boolean isBlock) {
         triggerCollections.compute(
-                trigger.toLowerCase(),
-                (k, v) -> {
-                    if (v == null) {
-                        v = new ArrayList<>();
-                    }
-                    v.add(triggerable);
-                    return v;
+            trigger.toLowerCase(),
+            (k, v) -> {
+                if (v == null) {
+                    v = new ArrayList<>();
                 }
+                v.add(triggerable);
+                return v;
+            }
         );
     }
 
-    private void checkBlockNearby(EntityRef entity, Vector3f triggerPosition, String triggerName, EntityRef blockChange) {
+    private void checkBlockNearby(EntityRef entity, Vector3fc triggerPosition, String triggerName, EntityRef blockChange) {
         ChangeBlockBlockNearbyComponent bn = blockChange.getComponent(ChangeBlockBlockNearbyComponent.class);
         if (bn != null) {
             //check the possible changes for this block
@@ -109,20 +98,20 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                 //if the trigger matches
                 if (change.triggerBlockID.equals(triggerName)) {
                     LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
-                    Vector3f changeSpot = blockLocation.getWorldPosition();
+                    Vector3f changeSpot = blockLocation.getWorldPosition(new Vector3f());
                     float distance = changeSpot.distance(triggerPosition);
                     //if it is adjacent
                     if (change.adjacent && distance < 2 && change.chance >= random.nextFloat()) {
-                        worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
+                        worldprovider.setBlock(new Vector3i(changeSpot, RoundingMode.FLOOR), blockManager.getBlock(change.targetBlockID));
                     } else {
                         //if it is within range
                         if (distance >= change.minDistance && distance <= change.maxDistance) {
-                            Vector3f direction = triggerPosition.sub(changeSpot);
+                            Vector3f direction = triggerPosition.sub(changeSpot, new Vector3f());
                             //if the change can occur when obstructed, or otherwise if there is no obstruction
-                            if (change.throughWalls || physics.rayTrace(JomlUtil.from(changeSpot), JomlUtil.from(direction), change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
+                            if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
                                 //if the random odds are in our favor
                                 if (change.chance >= random.nextFloat()) {
-                                    worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
+                                    worldprovider.setBlock(new Vector3i(changeSpot, RoundingMode.FLOOR), blockManager.getBlock(change.targetBlockID));
                                 }
                             }
                         }
@@ -132,7 +121,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         }
     }
 
-    private void checkBlockDirected(EntityRef entity, Vector3f triggerPosition, String triggerName, EntityRef blockChange) {
+    private void checkBlockDirected(EntityRef entity, Vector3fc triggerPosition, String triggerName, EntityRef blockChange) {
         ChangeBlockBlockDirectedComponent bd = blockChange.getComponent(ChangeBlockBlockDirectedComponent.class);
         if (bd != null) {
             //check the possible changes for this block
@@ -140,21 +129,21 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                 //if the trigger matches
                 if (change.triggerBlockID.equals(triggerName)) {
                     LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
-                    Vector3f changeSpot = blockLocation.getWorldPosition();
+                    Vector3f changeSpot = blockLocation.getWorldPosition(new Vector3f());
                     float distance = changeSpot.distance(triggerPosition);
                     //if it is within range
                     if (distance >= change.minDistance && distance <= change.maxDistance) {
                         Side global = change.blockSide.getRelativeSide(Direction.inDirection(blockLocation.getLocalDirection()));
-                        Vector3f direction = triggerPosition.sub(changeSpot);
+                        Vector3f direction = triggerPosition.sub(changeSpot, new Vector3f());
                         //if it's on the correct side of the block
                         if (Side.inDirection(direction) == global) {
                             //if the angle is within the change's field of view limit
-                            if (direction.angle(global.getVector3i().toVector3f()) <= change.fieldOfView) {
+                            if (direction.angle(new Vector3f(global.direction())) <= change.fieldOfView) {
                                 //if the change can occur when obstructed, or otherwise if there is no obstruction
-                                if (change.throughWalls || physics.rayTrace(JomlUtil.from(changeSpot), JomlUtil.from(direction), change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
+                                if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
                                     //if the random odds are in our favor
                                     if (change.chance >= random.nextFloat()) {
-                                        worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
+                                        worldprovider.setBlock(new Vector3i(changeSpot, RoundingMode.FLOOR), blockManager.getBlock(change.targetBlockID));
                                     }
                                 }
                             }
@@ -165,7 +154,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         }
     }
 
-    private void checkEntityNearby(EntityRef entity, Vector3f triggerPosition, String triggerName, EntityRef blockChange) {
+    private void checkEntityNearby(EntityRef entity, Vector3fc triggerPosition, String triggerName, EntityRef blockChange) {
         ChangeBlockEntityNearbyComponent en = blockChange.getComponent(ChangeBlockEntityNearbyComponent.class);
         if (en != null) {
             //check the possible changes for this block
@@ -173,16 +162,16 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                 //if the trigger matches
                 if (change.triggerEntity.equals(triggerName)) {
                     LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
-                    Vector3f changeSpot = blockLocation.getWorldPosition();
+                    Vector3f changeSpot = blockLocation.getWorldPosition(new Vector3f());
                     float distance = changeSpot.distance(triggerPosition);
                     //if it is within range
                     if (distance >= change.minDistance && distance <= change.maxDistance) {
-                        Vector3f direction = triggerPosition.sub(changeSpot);
+                        Vector3f direction = triggerPosition.sub(changeSpot, new Vector3f());
                         //if the change can occur when obstructed, or otherwise if there is no obstruction
-                        if (change.throughWalls || physics.rayTrace(JomlUtil.from(changeSpot), JomlUtil.from(direction), change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
+                        if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
                             //if the random odds are in our favor
                             if (change.chance >= random.nextFloat()) {
-                                worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
+                                worldprovider.setBlock(new Vector3i(changeSpot, RoundingMode.FLOOR), blockManager.getBlock(change.targetBlockID));
                             }
                         }
                     }
@@ -191,7 +180,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         }
     }
 
-    private void checkEntityDirected(EntityRef entity, Vector3f triggerPosition, String triggerName, EntityRef blockChange) {
+    private void checkEntityDirected(EntityRef entity, Vector3fc triggerPosition, String triggerName, EntityRef blockChange) {
         ChangeBlockEntityDirectedComponent ed = blockChange.getComponent(ChangeBlockEntityDirectedComponent.class);
         if (ed != null) {
             //check the possible changes for this block
@@ -199,21 +188,21 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                 //if the trigger matches
                 if (change.triggerEntity.equals(triggerName)) {
                     LocationComponent blockLocation = blockChange.getComponent(LocationComponent.class);
-                    Vector3f changeSpot = blockLocation.getWorldPosition();
+                    Vector3f changeSpot = blockLocation.getWorldPosition(new Vector3f());
                     float distance = changeSpot.distance(triggerPosition);
                     //if it is within range
                     if (distance >= change.minDistance && distance <= change.maxDistance) {
                         Side global = change.blockSide.getRelativeSide(Direction.inDirection(blockLocation.getLocalDirection()));
-                        Vector3f direction = triggerPosition.sub(changeSpot);
+                        Vector3f direction = triggerPosition.sub(changeSpot, new Vector3f());
                         //if it's on the correct side of the block
                         if (Side.inDirection(direction) == global) {
                             //if the angle is within the change's field of view limit
-                            if (direction.angle(global.getVector3i().toVector3f()) <= change.fieldOfView) {
+                            if (direction.angle(new Vector3f(global.direction())) <= change.fieldOfView) {
                                 //if the change can occur when obstructed, or otherwise if there is no obstruction
-                                if (change.throughWalls || physics.rayTrace(JomlUtil.from(changeSpot), JomlUtil.from(direction), change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
+                                if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
                                     //if the random odds are in our favor
                                     if (change.chance >= random.nextFloat()) {
-                                        worldprovider.setBlock(new Vector3i(changeSpot.x, changeSpot.y, changeSpot.z), blockManager.getBlock(change.targetBlockID));
+                                        worldprovider.setBlock(new Vector3i(changeSpot, RoundingMode.FLOOR), blockManager.getBlock(change.targetBlockID));
                                     }
                                 }
                             }
@@ -224,15 +213,16 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         }
     }
 
-        /**
-         * Executes any conditional changes that may be started by the given entity (including block entities) at the given position.
-         * This method is public so that other modules may register their own custom event triggers.
-         * @param entity The entity that may cause the trigger.
-         * @param triggerPosition The location at which the entity is found.
-         * @param triggerName The string representing this entity's type.
-         * @param isBlock Whether this entity is a block entity or another type.
-         */
-    public void checkLocational(EntityRef entity, Vector3f triggerPosition, String triggerName, Boolean isBlock) {
+    /**
+     * Executes any conditional changes that may be started by the given entity (including block entities) at the given
+     * position. This method is public so that other modules may register their own custom event triggers.
+     *
+     * @param entity The entity that may cause the trigger.
+     * @param triggerPosition The location at which the entity is found.
+     * @param triggerName The string representing this entity's type.
+     * @param isBlock Whether this entity is a block entity or another type.
+     */
+    public void checkLocational(EntityRef entity, Vector3fc triggerPosition, String triggerName, Boolean isBlock) {
         for (EntityRef blockChange : triggerCollections.get(triggerName)) {
             if (isBlock) {
                 checkBlockNearby(entity, triggerPosition, triggerName, blockChange);
@@ -246,20 +236,22 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
 
     /**
      * Triggers any conditional changes that should be caused by a dropped Item.
+     *
      * @param event The event triggered by the location or item change.
      * @param entity The item.
      */
-    @ReceiveEvent(components =  {LocationComponent.class, ItemComponent.class})
+    @ReceiveEvent(components = {LocationComponent.class, ItemComponent.class})
     public void onItemUpdate(LocationChangedEvent event, EntityRef entity) {
         String trigger = "item";
         if (triggerCollections.containsKey(trigger)) {
             LocationComponent lc = entity.getComponent(LocationComponent.class);
-            checkLocational(entity, lc.getWorldPosition(), trigger, false);
+            checkLocational(entity, lc.getWorldPosition(new Vector3f()), trigger, false);
         }
     }
 
     /**
      * Triggers any conditional changes that should be caused by a non-player character.
+     *
      * @param event The event triggered by the location or character change.
      * @param entity The NPC.
      */
@@ -268,12 +260,13 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         String trigger = "npc";
         if (triggerCollections.containsKey(trigger)) {
             LocationComponent lc = entity.getComponent(LocationComponent.class);
-            checkLocational(entity, lc.getWorldPosition(), trigger, false);
+            checkLocational(entity, lc.getWorldPosition(new Vector3f()), trigger, false);
         }
     }
 
     /**
      * Triggers any conditional changes that should be caused by a player.
+     *
      * @param event The event triggered by the location or player change.
      * @param entity The player.
      */
@@ -282,12 +275,13 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         String trigger = "player";
         if (triggerCollections.containsKey(trigger)) {
             LocationComponent lc = entity.getComponent(LocationComponent.class);
-            checkLocational(entity, lc.getWorldPosition(), trigger, false);
+            checkLocational(entity, lc.getWorldPosition(new Vector3f()), trigger, false);
         }
     }
 
     /**
      * Triggers any conditional changes that should be caused by a block being added or removed.
+     *
      * @param event The information about the block change.
      * @param entity The new block entity.
      */
@@ -295,12 +289,13 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
     public void onUpdate(OnChangedBlock event, EntityRef entity) {
         String trigger = event.getNewType().getURI().toString().toLowerCase();
         if (triggerCollections.containsKey(trigger)) {
-            checkLocational(entity, JomlUtil.from(new org.joml.Vector3f(event.getBlockPosition())), trigger, true);
+            checkLocational(entity, new Vector3f(event.getBlockPosition()), trigger, true);
         }
     }
 
     /**
      * Registers every block that may be triggered by a directed change.
+     *
      * @param event The event caused by the block's creation.
      * @param entity The block entity to register.
      */
@@ -315,6 +310,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
 
     /**
      * Registers every block that may be triggered by a non-directional change.
+     *
      * @param event The event caused by the block's creation.
      * @param entity The block entity to register.
      */
@@ -329,6 +325,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
 
     /**
      * Registers every block that may be triggered by an entity in a certain direction.
+     *
      * @param event The event caused by the block's creation.
      * @param entity The block entity to register.
      */
@@ -343,6 +340,7 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
 
     /**
      * Registers every block that may be triggered by a nearby entity regardless of direction.
+     *
      * @param event The event caused by the block's creation.
      * @param entity The block entity to register.
      */
@@ -357,16 +355,17 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
 
     /**
      * Removes a block entity from the list of triggerable blocks whenever the block is removed.
+     *
      * @param event The event caused by the block's removal.
      * @param entity The block entity to deregister.
      */
     @ReceiveEvent(components = {ConditionalBlockChangeComponent.class, LocationComponent.class, BlockComponent.class})
     public void onRemoving(BeforeRemoveComponent event, EntityRef entity) {
         triggerCollections.replaceAll(
-                (trigger, refs) -> {
-                    refs.remove(entity);
-                    return refs;
-                }
+            (trigger, refs) -> {
+                refs.remove(entity);
+                return refs;
+            }
         );
     }
 
