@@ -92,7 +92,7 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
                 if (gameTimeInMs - blockAnimation.lastGameTimeCheck > blockAnimation.timeInGameMsToNextStage) {
                     blockAnimation.lastGameTimeCheck = timer.getGameTimeInMs();
                     LocationComponent locComponent = changingBlocks.getComponent(LocationComponent.class);
-                    Block currentBlock = worldprovider.getBlock(locComponent.getWorldPosition());
+                    Block currentBlock = worldprovider.getBlock(locComponent.getWorldPosition(new Vector3f()));
                     String currentBlockFamilyStage = currentBlock.getURI().toString();
                     Set<String> keySet = blockAnimation.blockFamilyStages.keySet();
                     List<String> keyList = new ArrayList<>(keySet);
