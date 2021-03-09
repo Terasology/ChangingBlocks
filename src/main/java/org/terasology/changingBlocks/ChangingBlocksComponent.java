@@ -15,10 +15,10 @@
  */
 package org.terasology.changingBlocks;
 
-import java.util.Map;
+import org.terasology.engine.entitySystem.Component;
+import org.terasology.engine.world.block.ForceBlockActive;
 
-import org.terasology.entitySystem.Component;
-import org.terasology.world.block.ForceBlockActive;
+import java.util.Map;
 
 @ForceBlockActive
 public final class ChangingBlocksComponent implements Component {

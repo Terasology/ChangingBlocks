@@ -15,7 +15,7 @@
  */
 package org.terasology.changingBlocks.conditional;
 
-import org.terasology.math.Side;
+import org.terasology.engine.math.Side;
 
 public class BlockCondition {
     /**

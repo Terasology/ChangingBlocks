@@ -15,7 +15,7 @@
  */
 package org.terasology.changingBlocks;
 
-import org.terasology.entitySystem.event.AbstractConsumableEvent;
+import org.terasology.engine.entitySystem.event.AbstractConsumableEvent;
 
 public class OnBlockSequenceComplete extends AbstractConsumableEvent {
     

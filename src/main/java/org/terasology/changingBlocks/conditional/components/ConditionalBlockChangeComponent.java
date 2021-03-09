@@ -15,7 +15,7 @@
  */
 package org.terasology.changingBlocks.conditional.components;
 
-import org.terasology.entitySystem.Component;
+import org.terasology.engine.entitySystem.Component;
 
 public interface ConditionalBlockChangeComponent extends Component {
 }
