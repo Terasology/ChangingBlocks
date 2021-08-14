@@ -11,7 +11,7 @@ public class ChangeBlockEntityNearbyComponent implements ConditionalBlockChangeC
     public List<BlockCondition.EntityNearby> changes;
 
     @Override
-    public void copy(ChangeBlockEntityNearbyComponent other) {
+    public void copyFrom(ChangeBlockEntityNearbyComponent other) {
         this.changes = Lists.newArrayList(other.changes);
     }
 }

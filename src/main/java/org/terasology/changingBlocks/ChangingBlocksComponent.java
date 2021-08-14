@@ -26,7 +26,7 @@ public final class ChangingBlocksComponent implements Component<ChangingBlocksCo
     public long lastGameTimeCheck = -1;
 
     @Override
-    public void copy(ChangingBlocksComponent other) {
+    public void copyFrom(ChangingBlocksComponent other) {
         this.loops = other.loops;
         this.stopped = other.stopped;
         this.blockFamilyStages.clear();

@@ -11,7 +11,7 @@ public class ChangeBlockEntityDirectedComponent implements ConditionalBlockChang
     public List<BlockCondition.EntityDirected> changes;
 
     @Override
-    public void copy(ChangeBlockEntityDirectedComponent other) {
+    public void copyFrom(ChangeBlockEntityDirectedComponent other) {
         this.changes = Lists.newArrayList(other.changes);
     }
 }
