@@ -1,4 +1,4 @@
-// Copyright 2020 The Terasology Foundation
+// Copyright 2022 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
 package org.terasology.changingBlocks.conditional;
 
@@ -81,11 +81,12 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
         triggerCollections.compute(
             trigger.toLowerCase(),
             (k, v) -> {
-                if (v == null) {
-                    v = new ArrayList<>();
+                List<EntityRef> vCopy = v;
+                if (vCopy == null) {
+                    vCopy = new ArrayList<>();
                 }
-                v.add(triggerable);
-                return v;
+                vCopy.add(triggerable);
+                return vCopy;
             }
         );
     }
@@ -108,7 +109,9 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                         if (distance >= change.minDistance && distance <= change.maxDistance) {
                             Vector3f direction = triggerPosition.sub(changeSpot, new Vector3f());
                             //if the change can occur when obstructed, or otherwise if there is no obstruction
-                            if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
+                            if (change.throughWalls || physics
+                                    .rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD)
+                                    .getEntity() == entity) {
                                 //if the random odds are in our favor
                                 if (change.chance >= random.nextFloat()) {
                                     worldprovider.setBlock(new Vector3i(changeSpot, RoundingMode.FLOOR), blockManager.getBlock(change.targetBlockID));
@@ -140,10 +143,13 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                             //if the angle is within the change's field of view limit
                             if (direction.angle(new Vector3f(global.direction())) <= change.fieldOfView) {
                                 //if the change can occur when obstructed, or otherwise if there is no obstruction
-                                if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
+                                if (change.throughWalls || physics
+                                        .rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD)
+                                        .getEntity() == entity) {
                                     //if the random odds are in our favor
                                     if (change.chance >= random.nextFloat()) {
-                                        worldprovider.setBlock(new Vector3i(changeSpot, RoundingMode.FLOOR), blockManager.getBlock(change.targetBlockID));
+                                        worldprovider.setBlock(new Vector3i(changeSpot, RoundingMode.FLOOR),
+                                                blockManager.getBlock(change.targetBlockID));
                                     }
                                 }
                             }
@@ -168,10 +174,13 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                     if (distance >= change.minDistance && distance <= change.maxDistance) {
                         Vector3f direction = triggerPosition.sub(changeSpot, new Vector3f());
                         //if the change can occur when obstructed, or otherwise if there is no obstruction
-                        if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
+                        if (change.throughWalls || physics
+                                .rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD)
+                                .getEntity() == entity) {
                             //if the random odds are in our favor
                             if (change.chance >= random.nextFloat()) {
-                                worldprovider.setBlock(new Vector3i(changeSpot, RoundingMode.FLOOR), blockManager.getBlock(change.targetBlockID));
+                                worldprovider.setBlock(new Vector3i(changeSpot, RoundingMode.FLOOR),
+                                        blockManager.getBlock(change.targetBlockID));
                             }
                         }
                     }
@@ -199,10 +208,13 @@ public class ConditionalBlocksSystem extends BaseComponentSystem {
                             //if the angle is within the change's field of view limit
                             if (direction.angle(new Vector3f(global.direction())) <= change.fieldOfView) {
                                 //if the change can occur when obstructed, or otherwise if there is no obstruction
-                                if (change.throughWalls || physics.rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD).getEntity() == entity) {
+                                if (change.throughWalls || physics
+                                        .rayTrace(changeSpot, direction, change.maxDistance, StandardCollisionGroup.WORLD)
+                                        .getEntity() == entity) {
                                     //if the random odds are in our favor
                                     if (change.chance >= random.nextFloat()) {
-                                        worldprovider.setBlock(new Vector3i(changeSpot, RoundingMode.FLOOR), blockManager.getBlock(change.targetBlockID));
+                                        worldprovider.setBlock(new Vector3i(changeSpot, RoundingMode.FLOOR),
+                                                blockManager.getBlock(change.targetBlockID));
                                     }
                                 }
                             }

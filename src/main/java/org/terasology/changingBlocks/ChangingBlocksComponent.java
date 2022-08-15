@@ -1,4 +1,4 @@
-// Copyright 2021 The Terasology Foundation
+// Copyright 2022 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
 package org.terasology.changingBlocks;
 
@@ -31,7 +31,7 @@ public final class ChangingBlocksComponent implements Component<ChangingBlocksCo
         this.loops = other.loops;
         this.stopped = other.stopped;
         this.blockFamilyStages.clear();
-        other.blockFamilyStages.forEach((k,v) -> this.blockFamilyStages.put(k,v));
+        other.blockFamilyStages.forEach((k, v) -> this.blockFamilyStages.put(k, v));
         this.timeInGameMsToNextStage = other.timeInGameMsToNextStage;
         this.lastGameTimeCheck = other.lastGameTimeCheck;
     }
