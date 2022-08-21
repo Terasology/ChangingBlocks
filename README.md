@@ -8,18 +8,18 @@ When the last block is reached, either loop back to the first one, or send an On
 
 Example component to add to a prefab:
 
-	"ChangingBlocks" : {
-		"blockFamilyStages" : [
-		  { "key": "Crops:Corn1", "value": 30000 },
-			{ "key": "Crops:Corn2", "value": 30000 },
-			{ "key": "Crops:Corn3", "value": 30000 },
-			{ "key": "Crops:Corn4", "value": 30000 },
-			{ "key": "Crops:Corn5", "value": 30000 },
-			{ "key": "Crops:Corn6", "value": 30000 },
-			{ "key": "Crops:Corn7", "value": 30000 }
-    ],
-		"loops" : false
-	}
+    "ChangingBlocks" : {
+        "blockFamilyStages" : [
+            { "key": "Crops:Corn1", "value": 30000 },
+            { "key": "Crops:Corn2", "value": 30000 },
+            { "key": "Crops:Corn3", "value": 30000 },
+            { "key": "Crops:Corn4", "value": 30000 },
+            { "key": "Crops:Corn5", "value": 30000 },
+            { "key": "Crops:Corn6", "value": 30000 },
+            { "key": "Crops:Corn7", "value": 30000 }
+        ],
+        "loops" : false
+    }
 
 Example prefab to add to each block:
 
