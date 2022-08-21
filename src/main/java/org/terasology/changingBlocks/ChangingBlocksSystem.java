@@ -82,7 +82,8 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
                     blockAnimation.lastGameTimeCheck = timer.getGameTimeInMs();
                     LocationComponent locComponent = changingBlocks.getComponent(LocationComponent.class);
                     Block currentBlock = worldprovider.getBlock(locComponent.getWorldPosition(new Vector3f()));
-                    String currentBlockFamilyStage = currentBlock.getURI().toString();
+                    SimpleUri currentBlockFamilyStage = new SimpleUri(currentBlock.getURI().getModuleName(),
+                            currentBlock.getURI().getIdentifier());
                     Set<SimpleUri> keySet = blockAnimation.blockFamilyStages.keySet();
                     List<SimpleUri> keyList = new ArrayList<>(keySet);
                     int currentstageIndex = keyList.indexOf(currentBlockFamilyStage);
@@ -99,7 +100,7 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
                         }
                         SimpleUri newBlockUri = keyList.get(currentstageIndex);
                         Block newBlock = blockManager.getBlock(newBlockUri.toString());
-                        if (newBlockUri.equals(newBlock.getURI().toString())) {
+                        if (newBlockUri.equals(new SimpleUri(newBlock.getURI().getModuleName(), newBlock.getURI().getIdentifier()))) {
                             worldprovider.setBlock(new Vector3i(locComponent.getWorldPosition(new Vector3f()), RoundingMode.FLOOR), newBlock);
                             blockAnimation.timeInGameMsToNextStage = blockAnimation.blockFamilyStages.get(currentBlockFamilyStage);
                         }
