@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.terasology.changingBlocks;
 
-import org.terasology.engine.core.SimpleUri;
+import org.terasology.engine.world.block.BlockUri;
 import org.terasology.engine.world.block.ForceBlockActive;
 import org.terasology.gestalt.entitysystem.component.Component;
 
@@ -18,7 +18,7 @@ public final class ChangingBlocksComponent implements Component<ChangingBlocksCo
     public boolean stopped;
 
     // List of block names to cycle through
-    public Map<SimpleUri, Long> blockFamilyStages;
+    public Map<BlockUri, Long> blockFamilyStages;
 
     // internal: used to determine time to next block change
     public long timeInGameMsToNextStage;

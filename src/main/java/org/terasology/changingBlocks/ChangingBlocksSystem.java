@@ -5,7 +5,6 @@ package org.terasology.changingBlocks;
 import org.joml.RoundingMode;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
-import org.terasology.engine.core.SimpleUri;
 import org.terasology.engine.core.Time;
 import org.terasology.engine.entitySystem.entity.EntityManager;
 import org.terasology.engine.entitySystem.entity.EntityRef;
@@ -52,7 +51,7 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
         ChangingBlocksComponent changingBlocks = entity.getComponent(ChangingBlocksComponent.class);
         LocationComponent locComponent = entity.getComponent(LocationComponent.class);
         Block currentBlock = worldprovider.getBlock(locComponent.getWorldPosition(new Vector3f()));
-        SimpleUri currentBlockFamilyStage = getSimpleUriFromBlockUri(currentBlock.getURI());
+        BlockUri currentBlockFamilyStage = currentBlock.getURI();
 
         changingBlocks.timeInGameMsToNextStage = changingBlocks.blockFamilyStages.get(currentBlockFamilyStage);
         changingBlocks.lastGameTimeCheck = initTime;
@@ -85,12 +84,13 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
 
                     LocationComponent locComponent = changingBlocks.getComponent(LocationComponent.class);
                     Block currentBlock = worldprovider.getBlock(locComponent.getWorldPosition(new Vector3f()));
-                    SimpleUri currentBlockFamilyStage = getSimpleUriFromBlockUri(currentBlock.getURI());
-                    Set<SimpleUri> keySet = blockAnimation.blockFamilyStages.keySet();
-                    List<SimpleUri> keyList = new ArrayList<>(keySet);
+                    BlockUri currentBlockFamilyStage = currentBlock.getURI();
 
+                    Set<BlockUri> keySet = blockAnimation.blockFamilyStages.keySet();
+                    List<BlockUri> keyList = new ArrayList<>(keySet);
                     int currentstageIndex = keyList.indexOf(currentBlockFamilyStage);
                     int lastStageIndex = blockAnimation.blockFamilyStages.size() - 1;
+
                     if (lastStageIndex > currentstageIndex) {
                         currentstageIndex++;
                         if (currentstageIndex == lastStageIndex) {
@@ -101,28 +101,15 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
                                 changingBlocks.send(new OnBlockSequenceComplete());
                             }
                         }
-                        SimpleUri newBlockUri = keyList.get(currentstageIndex);
-                        Block newBlock = blockManager.getBlock(newBlockUri.toString());
-                        if (newBlockUri.equals(getSimpleUriFromBlockUri(newBlock.getURI()))) {
-                            worldprovider.setBlock(new Vector3i(locComponent.getWorldPosition(new Vector3f()), RoundingMode.FLOOR), newBlock);
-                            blockAnimation.timeInGameMsToNextStage = blockAnimation.blockFamilyStages.get(currentBlockFamilyStage);
-                        }
+                        BlockUri newBlockUri = keyList.get(currentstageIndex);
+                        Block newBlock = blockManager.getBlock(newBlockUri);
+                        worldprovider.setBlock(new Vector3i(locComponent.getWorldPosition(new Vector3f()), RoundingMode.FLOOR), newBlock);
+                        blockAnimation.timeInGameMsToNextStage = blockAnimation.blockFamilyStages.get(currentBlockFamilyStage);
                     }
                     changingBlocks.saveComponent(blockAnimation);
                 }
             }
             lastCheckTime = gameTimeInMs;
         }
-    }
-
-    /***
-     * Creates a {@link SimpleUri} from a {@link BlockUri}, omitting blockFamily and shape.
-     * For the `ChangingBlocks` module, shape and block family are irrelevant.
-     *
-     * @param blockUri a valid BlockUri
-     * @return a SimpleUri following the pattern [package]:[blockIdentifier]
-     */
-    private SimpleUri getSimpleUriFromBlockUri(BlockUri blockUri) {
-        return new SimpleUri(blockUri.getModuleName(), blockUri.getIdentifier());
     }
 }
