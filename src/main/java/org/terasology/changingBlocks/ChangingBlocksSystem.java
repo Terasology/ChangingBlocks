@@ -20,6 +20,7 @@ import org.terasology.engine.world.WorldProvider;
 import org.terasology.engine.world.block.Block;
 import org.terasology.engine.world.block.BlockComponent;
 import org.terasology.engine.world.block.BlockManager;
+import org.terasology.engine.world.block.BlockUri;
 import org.terasology.gestalt.entitysystem.event.ReceiveEvent;
 
 import java.util.ArrayList;
@@ -42,25 +43,25 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
     private long lastCheckTime;
 
     @Override
-    public void initialise() {
-    }
+    public void initialise() { }
 
     @ReceiveEvent(components = {ChangingBlocksComponent.class, LocationComponent.class, BlockComponent.class})
     public void onSpawn(OnAddedComponent event, EntityRef entity) {
         long initTime = timer.getGameTimeInMs();
+
         ChangingBlocksComponent changingBlocks = entity.getComponent(ChangingBlocksComponent.class);
         LocationComponent locComponent = entity.getComponent(LocationComponent.class);
         Block currentBlock = worldprovider.getBlock(locComponent.getWorldPosition(new Vector3f()));
-        SimpleUri currentBlockFamilyStage = new SimpleUri(currentBlock.getURI().getModuleName(), currentBlock.getURI().getIdentifier());
+        SimpleUri currentBlockFamilyStage = getSimpleUriFromBlockUri(currentBlock.getURI());
+
         changingBlocks.timeInGameMsToNextStage = changingBlocks.blockFamilyStages.get(currentBlockFamilyStage);
         changingBlocks.lastGameTimeCheck = initTime;
+
         entity.saveComponent(changingBlocks);
     }
 
     @Override
-    public void shutdown() {
-
-    }
+    public void shutdown() { }
 
     @Override
     public void update(float delta) {
@@ -78,14 +79,16 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
                     changingBlocks.saveComponent(blockAnimation);
                     return;
                 }
+
                 if (gameTimeInMs - blockAnimation.lastGameTimeCheck > blockAnimation.timeInGameMsToNextStage) {
                     blockAnimation.lastGameTimeCheck = timer.getGameTimeInMs();
+
                     LocationComponent locComponent = changingBlocks.getComponent(LocationComponent.class);
                     Block currentBlock = worldprovider.getBlock(locComponent.getWorldPosition(new Vector3f()));
-                    SimpleUri currentBlockFamilyStage = new SimpleUri(currentBlock.getURI().getModuleName(),
-                            currentBlock.getURI().getIdentifier());
+                    SimpleUri currentBlockFamilyStage = getSimpleUriFromBlockUri(currentBlock.getURI());
                     Set<SimpleUri> keySet = blockAnimation.blockFamilyStages.keySet();
                     List<SimpleUri> keyList = new ArrayList<>(keySet);
+
                     int currentstageIndex = keyList.indexOf(currentBlockFamilyStage);
                     int lastStageIndex = blockAnimation.blockFamilyStages.size() - 1;
                     if (lastStageIndex > currentstageIndex) {
@@ -100,7 +103,7 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
                         }
                         SimpleUri newBlockUri = keyList.get(currentstageIndex);
                         Block newBlock = blockManager.getBlock(newBlockUri.toString());
-                        if (newBlockUri.equals(new SimpleUri(newBlock.getURI().getModuleName(), newBlock.getURI().getIdentifier()))) {
+                        if (newBlockUri.equals(getSimpleUriFromBlockUri(newBlock.getURI()))) {
                             worldprovider.setBlock(new Vector3i(locComponent.getWorldPosition(new Vector3f()), RoundingMode.FLOOR), newBlock);
                             blockAnimation.timeInGameMsToNextStage = blockAnimation.blockFamilyStages.get(currentBlockFamilyStage);
                         }
@@ -110,5 +113,16 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
             }
             lastCheckTime = gameTimeInMs;
         }
+    }
+
+    /***
+     * Creates a {@link SimpleUri} from a {@link BlockUri}, omitting blockFamily and shape.
+     * For the `ChangingBlocks` module, shape and block family are irrelevant.
+     *
+     * @param blockUri a valid BlockUri
+     * @return a SimpleUri following the pattern [package]:[blockIdentifier]
+     */
+    private SimpleUri getSimpleUriFromBlockUri(BlockUri blockUri) {
+        return new SimpleUri(blockUri.getModuleName(), blockUri.getIdentifier());
     }
 }
