@@ -1,18 +1,5 @@
-/*
- * Copyright 2015 MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2022 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 package org.terasology.changingBlocks;
 
 import org.joml.RoundingMode;
@@ -32,6 +19,7 @@ import org.terasology.engine.world.WorldProvider;
 import org.terasology.engine.world.block.Block;
 import org.terasology.engine.world.block.BlockComponent;
 import org.terasology.engine.world.block.BlockManager;
+import org.terasology.engine.world.block.BlockUri;
 import org.terasology.gestalt.entitysystem.event.ReceiveEvent;
 
 import java.util.ArrayList;
@@ -54,32 +42,33 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
     private long lastCheckTime;
 
     @Override
-    public void initialise() {
-    }
+    public void initialise() { }
 
     @ReceiveEvent(components = {ChangingBlocksComponent.class, LocationComponent.class, BlockComponent.class})
     public void onSpawn(OnAddedComponent event, EntityRef entity) {
         long initTime = timer.getGameTimeInMs();
+
         ChangingBlocksComponent changingBlocks = entity.getComponent(ChangingBlocksComponent.class);
         LocationComponent locComponent = entity.getComponent(LocationComponent.class);
         Block currentBlock = worldprovider.getBlock(locComponent.getWorldPosition(new Vector3f()));
-        String currentBlockFamilyStage = currentBlock.getURI().toString();
+        BlockUri currentBlockFamilyStage = currentBlock.getURI();
+
         changingBlocks.timeInGameMsToNextStage = changingBlocks.blockFamilyStages.get(currentBlockFamilyStage);
         changingBlocks.lastGameTimeCheck = initTime;
+
         entity.saveComponent(changingBlocks);
     }
 
     @Override
-    public void shutdown() {
-
-    }
+    public void shutdown() { }
 
     @Override
     public void update(float delta) {
         // System last time check is to try to improve performance
         long gameTimeInMs = timer.getGameTimeInMs();
         if (lastCheckTime + CHECK_INTERVAL < gameTimeInMs) {
-            for (EntityRef changingBlocks : entityManager.getEntitiesWith(ChangingBlocksComponent.class, BlockComponent.class, LocationComponent.class)) {
+            for (EntityRef changingBlocks : entityManager.getEntitiesWith(ChangingBlocksComponent.class,
+                    BlockComponent.class, LocationComponent.class)) {
                 ChangingBlocksComponent blockAnimation = changingBlocks.getComponent(ChangingBlocksComponent.class);
                 if (blockAnimation.stopped) {
                     return;
@@ -89,15 +78,19 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
                     changingBlocks.saveComponent(blockAnimation);
                     return;
                 }
+
                 if (gameTimeInMs - blockAnimation.lastGameTimeCheck > blockAnimation.timeInGameMsToNextStage) {
                     blockAnimation.lastGameTimeCheck = timer.getGameTimeInMs();
+
                     LocationComponent locComponent = changingBlocks.getComponent(LocationComponent.class);
                     Block currentBlock = worldprovider.getBlock(locComponent.getWorldPosition(new Vector3f()));
-                    String currentBlockFamilyStage = currentBlock.getURI().toString();
-                    Set<String> keySet = blockAnimation.blockFamilyStages.keySet();
-                    List<String> keyList = new ArrayList<>(keySet);
+                    BlockUri currentBlockFamilyStage = currentBlock.getURI();
+
+                    Set<BlockUri> keySet = blockAnimation.blockFamilyStages.keySet();
+                    List<BlockUri> keyList = new ArrayList<>(keySet);
                     int currentstageIndex = keyList.indexOf(currentBlockFamilyStage);
                     int lastStageIndex = blockAnimation.blockFamilyStages.size() - 1;
+
                     if (lastStageIndex > currentstageIndex) {
                         currentstageIndex++;
                         if (currentstageIndex == lastStageIndex) {
@@ -108,12 +101,10 @@ public class ChangingBlocksSystem extends BaseComponentSystem implements UpdateS
                                 changingBlocks.send(new OnBlockSequenceComplete());
                             }
                         }
-                        String newBlockUri = keyList.get(currentstageIndex);
+                        BlockUri newBlockUri = keyList.get(currentstageIndex);
                         Block newBlock = blockManager.getBlock(newBlockUri);
-                        if (newBlockUri.equals(newBlock.getURI().toString())) {
-                            worldprovider.setBlock(new Vector3i(locComponent.getWorldPosition(new Vector3f()), RoundingMode.FLOOR), newBlock);
-                            blockAnimation.timeInGameMsToNextStage = blockAnimation.blockFamilyStages.get(currentBlockFamilyStage);
-                        }
+                        worldprovider.setBlock(new Vector3i(locComponent.getWorldPosition(new Vector3f()), RoundingMode.FLOOR), newBlock);
+                        blockAnimation.timeInGameMsToNextStage = blockAnimation.blockFamilyStages.get(currentBlockFamilyStage);
                     }
                     changingBlocks.saveComponent(blockAnimation);
                 }

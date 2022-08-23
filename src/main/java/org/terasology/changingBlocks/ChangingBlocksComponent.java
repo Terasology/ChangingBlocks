@@ -1,7 +1,8 @@
-// Copyright 2021 The Terasology Foundation
+// Copyright 2022 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
 package org.terasology.changingBlocks;
 
+import org.terasology.engine.world.block.BlockUri;
 import org.terasology.engine.world.block.ForceBlockActive;
 import org.terasology.gestalt.entitysystem.component.Component;
 
@@ -17,7 +18,7 @@ public final class ChangingBlocksComponent implements Component<ChangingBlocksCo
     public boolean stopped;
 
     // List of block names to cycle through
-    public Map<String, Long> blockFamilyStages;
+    public Map<BlockUri, Long> blockFamilyStages;
 
     // internal: used to determine time to next block change
     public long timeInGameMsToNextStage;
@@ -30,7 +31,7 @@ public final class ChangingBlocksComponent implements Component<ChangingBlocksCo
         this.loops = other.loops;
         this.stopped = other.stopped;
         this.blockFamilyStages.clear();
-        other.blockFamilyStages.forEach((k,v) -> this.blockFamilyStages.put(k,v));
+        other.blockFamilyStages.forEach((k, v) -> this.blockFamilyStages.put(k, v));
         this.timeInGameMsToNextStage = other.timeInGameMsToNextStage;
         this.lastGameTimeCheck = other.lastGameTimeCheck;
     }
